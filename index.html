@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2027 · Maqsadlar</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#071426; --bg2:#0c1e38; --card:#10264a; --card2:#163060; --line:#1f3b6e;
+  --tx:#eaf1ff; --mut:#93a7cc; --acc:#4f86ff; --acc2:#7aa5ff; --ok:#38c793; --warn:#f2b34a; --bad:#ef6b6b;
+  --r:16px; --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif}
+body{padding-bottom:calc(76px + var(--sab))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select,textarea{font:inherit;font-size:16px;color:var(--tx);background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+.wrap{max-width:560px;margin:0 auto;padding:calc(14px + var(--sat)) 14px 16px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.top h1{font-size:20px;margin:0;letter-spacing:.2px}
+.top .sub{color:var(--mut);font-size:13px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--card)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;justify-content:space-between}
+.card h3 small{color:var(--mut);font-weight:400;font-size:13px}
+.mut{color:var(--mut)} .sm{font-size:13px} .xs{font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.bar{height:8px;background:var(--bg2);border-radius:8px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:8px;transition:width .4s}
+.bar.ok>i{background:var(--ok)}
+.hero{background:linear-gradient(135deg,#123a86,#0d2450 60%,#0a1b3a);border:1px solid #2a4f96}
+.hero .big{font-size:30px;font-weight:700}
+.ring{width:84px;height:84px;flex:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.done{background:rgba(56,199,147,.16);border-color:var(--ok);color:#bff3df}
+.pray{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pray .chip{justify-content:center;padding:0 4px;flex-direction:column;gap:0;min-height:56px;font-size:13px}
+.pray .chip b{font-size:16px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);font-size:20px}
+.stepper input{width:72px;text-align:center;padding:10px 4px}
+.hrow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);min-height:56px}
+.hrow:first-of-type{border-top:0}
+.toggle{width:52px;height:32px;border-radius:20px;background:var(--bg2);border:1px solid var(--line);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--mut);transition:.2s}
+.toggle.on{background:var(--ok);border-color:var(--ok)}
+.toggle.on::after{left:23px;background:#fff}
+.datenav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.datenav button{width:44px;height:44px;border-radius:12px;background:var(--card);font-size:20px}
+.datenav button:disabled{opacity:.3}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.week .d{font-size:11px;color:var(--mut)}
+.week .c{height:36px;border-radius:10px;background:var(--bg2);display:grid;place-items:center;font-size:12px;margin-top:4px}
+.goal{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:10px}
+.goal .t{font-weight:600}
+.goal .v{color:var(--mut);font-size:13px;margin:4px 0 8px}
+.sec-h{margin:18px 2px 8px;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--acc2);display:flex;justify-content:space-between}
+.btn{min-height:48px;border-radius:14px;background:var(--acc);color:#fff;font-weight:600;padding:0 16px;width:100%}
+.btn.ghost{background:var(--card2);color:var(--tx)}
+.btn.danger{background:rgba(239,107,107,.15);color:#ffb3b3}
+.btn+.btn{margin-top:8px}
+.empty{text-align:center;padding:22px 10px;color:var(--mut)}
+.empty .btn{margin-top:10px;width:auto}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(7,20,38,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:var(--sab);z-index:5}
+nav.tabs button{min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;color:var(--mut)}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--acc2)}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;background:var(--bg2);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:21;padding:16px 16px calc(20px + var(--sab));transform:translateY(105%);transition:transform .25s}
+.sheet:not(.open){visibility:hidden;transition:transform .25s,visibility 0s .25s}
+.sheet.open{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:4px;background:var(--line);margin:0 auto 12px}
+.sheet h2{margin:0 0 12px;font-size:18px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:var(--mut);margin-bottom:6px}
+.log{font-size:13px}
+.log .hrow{min-height:40px}
+.x{width:36px;height:36px;border-radius:10px;color:var(--mut)}
+.cp{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:flex-start;width:100%;text-align:left}
+.cp:first-of-type{border-top:0}
+.cp .dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14px;margin-top:2px}
+.cp.done .dot{background:var(--ok);border-color:var(--ok);color:#06251a}
+.cp.late .dot{border-color:var(--warn)}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat div{background:var(--bg2);border-radius:12px;padding:10px}
+.stat b{display:block;font-size:20px}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translateX(-50%);background:#1d3f7a;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:40;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+.star{color:var(--warn)}
+svg text{fill:var(--mut);font-size:10px}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const BUILD = '1.0.0';
+const YEAR = 2027;
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTG = !!(tg && tg.initData);
+const can = v => { try { return inTG && tg.isVersionAtLeast(v); } catch(e){ return false; } };
+
+/* ---------- self-update (Telegram caches hard) ---------- */
+(function(){
+  try{
+    fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+      if(!j||!j.build||j.build===BUILD) return;
+      const k='g27_reload_'+j.build;
+      if(sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k,'1');
+      location.replace(location.pathname+'?v='+j.build+location.hash);
+    }).catch(()=>{});
+  }catch(e){}
+})();
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const today = () => ymd(new Date());
+const addDays = (s,n) => { const d=parse(s); d.setDate(d.getDate()+n); return ymd(d); };
+const daysBetween = (a,b) => Math.round((parse(b)-parse(a))/864e5);
+const uid = () => Math.random().toString(36).slice(2,9);
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+const fmt = n => { n=Number(n)||0; return (Math.round(n*10)/10).toLocaleString('ru-RU').replace(/,/g,'.').replace(/ /g,' '); };
+const OYLAR = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentyabr','oktyabr','noyabr','dekabr'];
+const OY3 = ['yan','fev','mar','apr','may','iyn','iyl','avg','sen','okt','noy','dek'];
+const HAFTA = ['Yak','Du','Se','Chor','Pay','Ju','Sha'];
+const HAFTA_FULL = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+const prettyDate = s => { const d=parse(s); return d.getDate()+'-'+OYLAR[d.getMonth()]+(d.getFullYear()!==YEAR?' '+d.getFullYear():''); };
+const haptic = (t='light') => { try{ if(!inTG) return; if(t==='ok') tg.HapticFeedback.notificationOccurred('success'); else if(t==='err') tg.HapticFeedback.notificationOccurred('error'); else if(t==='sel') tg.HapticFeedback.selectionChanged(); else tg.HapticFeedback.impactOccurred(t);}catch(e){} };
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function confirmBox(msg){ return new Promise(res=>{ if(can('6.2')){ try{ tg.showConfirm(msg,ok=>res(!!ok)); return; }catch(e){} } res(window.confirm(msg)); }); }
+
+/* ---------- storage: CloudStorage + localStorage, chunked docs ---------- */
+const LS = 'g27_';
+const CHUNK = 3500;
+const Cloud = {
+  ok: () => can('6.9') && !!tg.CloudStorage,
+  call(fn, ...args){ return new Promise((res,rej)=>{ try{ tg.CloudStorage[fn](...args,(err,val)=>err?rej(err):res(val)); }catch(e){ rej(e); } }); },
+  keys(){ return this.call('getKeys'); },
+  getMany(keys){ return keys.length?this.call('getItems',keys):Promise.resolve({}); },
+  set(k,v){ return this.call('setItem',k,v); },
+  removeMany(keys){ return keys.length?this.call('removeItems',keys):Promise.resolve(true); }
+};
+const Store = {
+  docs:{},            // name -> object
+  parts:{},           // name -> number of cloud parts last written
+  timers:{},
+  q: Promise.resolve(),
+  local(name){ try{ const s=localStorage.getItem(LS+name); return s?JSON.parse(s):null; }catch(e){ return null; } },
+  async loadAll(){
+    // local first
+    const names=new Set();
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith(LS)&&!k.startsWith(LS+'reload')) names.add(k.slice(LS.length)); }
+    names.forEach(n=>{ const v=this.local(n); if(v) this.docs[n]=v; });
+    if(!Cloud.ok()) return;
+    try{
+      const keys=await Cloud.keys();
+      if(!keys||!keys.length){ // first run in cloud: push local docs up
+        Object.keys(this.docs).forEach(n=>this.push(n)); return;
+      }
+      const vals=await Cloud.getMany(keys);
+      const grouped={};
+      keys.forEach(k=>{ const m=k.match(/^(.+)_(n|\d+)$/); if(!m) return; (grouped[m[1]]=grouped[m[1]]||{})[m[2]]=vals[k]; });
+      Object.entries(grouped).forEach(([name,g])=>{
+        const n=parseInt(g.n,10); if(!n) return;
+        let s=''; for(let i=0;i<n;i++){ if(g[i]==null) return; s+=g[i]; }
+        let obj; try{ obj=JSON.parse(s); }catch(e){ return; }
+        this.parts[name]=n;
+        const loc=this.docs[name];
+        if(!loc || (obj._ts||0) > (loc._ts||0)){ this.docs[name]=obj; try{ localStorage.setItem(LS+name,s); }catch(e){} }
+        else if((loc._ts||0) > (obj._ts||0)) this.push(name);
+      });
+      Object.keys(this.docs).forEach(n=>{ if(!grouped[n]) this.push(n); });
+    }catch(e){ console.warn('cloud load',e); }
+  },
+  get(name, def){ if(!this.docs[name]) this.docs[name]=def(); return this.docs[name]; },
+  save(name){
+    const d=this.docs[name]; if(!d) return;
+    d._ts=Date.now();
+    try{ localStorage.setItem(LS+name,JSON.stringify(d)); }catch(e){}
+    clearTimeout(this.timers[name]);
+    this.timers[name]=setTimeout(()=>this.push(name),700);
+  },
+  push(name){
+    if(!Cloud.ok()) return;
+    this.q=this.q.then(async()=>{
+      const d=this.docs[name]; if(!d) return;
+      const s=JSON.stringify(d);
+      const n=Math.max(1,Math.ceil(s.length/CHUNK));
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          for(let i=0;i<n;i++) await Cloud.set(name+'_'+i, s.slice(i*CHUNK,(i+1)*CHUNK));
+          await Cloud.set(name+'_n', String(n));
+          const old=this.parts[name]||0;
+          if(old>n){ const rm=[]; for(let i=n;i<old;i++) rm.push(name+'_'+i); await Cloud.removeMany(rm); }
+          this.parts[name]=n; return;
+        }catch(e){ await new Promise(r=>setTimeout(r,800*(attempt+1))); }
+      }
+    });
+  },
+  async resetAll(){
+    Object.keys(localStorage).filter(k=>k.startsWith(LS)).forEach(k=>localStorage.removeItem(k));
+    this.docs={}; this.parts={};
+    if(Cloud.ok()){ await this.q; const keys=await Cloud.keys(); for(let i=0;i<keys.length;i+=50) await Cloud.removeMany(keys.slice(i,i+50)); }
+  }
+};
+
+/* ---------- default data ---------- */
+const SECTIONS = [
+  {id:'moliya', name:'Moliya', ico:'💰'},
+  {id:'iymon', name:'Din va iymon', ico:'🕌'},
+  {id:'rivoj', name:'Shaxsiy rivojlanish', ico:'📚'},
+  {id:'sog', name:"Sog'liq va sport", ico:'💪'},
+  {id:'oila', name:'Oila', ico:'🏡'},
+  {id:'mukofot', name:'Mukofotlar', ico:'🎁'}
+];
+const secName = id => (SECTIONS.find(s=>s.id===id)||{name:id}).name;
+const secIco = id => (SECTIONS.find(s=>s.id===id)||{ico:'•'}).ico;
+const AUTO = {
+  namoz5:{label:'5 mahal namoz o\'qilgan kunlar', unit:'kun'},
+  juma:{label:'Juma namozlari', unit:'marta'},
+  gym:{label:'Zal mashg\'ulotlari', unit:'marta'},
+  books:{label:'O\'qilgan kitoblar', unit:'ta'},
+  yasin:{label:'Yosin surasi (yodlangan oyatlar)', unit:'oyat', memo:true},
+  mulk:{label:'Mulk surasi (yodlangan oyatlar)', unit:'oyat', memo:true},
+  asmo:{label:'Allohning 99 ismi (yodlangan)', unit:'ism', memo:true}
+};
+function defaultCore(){
+  const G=(sec,title,o)=>Object.assign({id:uid(),sec,title,star:false,type:'bin',done:false,note:''},o);
+  const S=(arr)=>arr.map(t=>({t,d:false}));
+  return {
+    v:1,
+    goals:[
+      G('moliya','Grit orqali oylik sof daromad',{star:true,type:'num',start:0,target:3000,unit:'$',monthly:true,log:[],note:'Taxminan 230–250 o\'quvchi kerak.'}),
+      G('moliya','Grit o\'quv markazini ochish',{star:true,type:'steps',steps:S(['IELTS 7.0+ sertifikati','Ko\'mak bo\'yicha savollarga javob olish','Biznes-reja tayyor','Joy topildi','Ko\'mak arizasi topshirildi','Mablag\' olindi','Markaz ochildi','50 ta o\'quvchi','100 ta o\'quvchi','230 ta o\'quvchi'])}),
+      G('moliya','Targetingdan oylik daromad',{star:true,type:'num',start:0,target:800,unit:'$',monthly:true,log:[]}),
+      G('moliya','Onix avtomashinasi (foizsiz, bo\'lib to\'lash)',{star:true,type:'bin',note:'Grit daromadi barqarorlashgach (okt–noy).'}),
+      G('moliya','Uy uchun jamg\'arma',{star:true,type:'num',start:0,target:5000,unit:'$',log:[],note:'Maqsad summasini o\'zing belgilab qo\'y.'}),
+      G('iymon','200+ kun 5 mahal namoz',{star:true,type:'auto',metric:'namoz5',target:200}),
+      G('iymon','30+ juma namozi',{star:true,type:'auto',metric:'juma',target:30}),
+      G('iymon','Yosin surasini yodlash',{type:'auto',metric:'yasin',target:83}),
+      G('iymon','Mulk surasini yodlash',{type:'auto',metric:'mulk',target:30}),
+      G('iymon','Allohning 99 go\'zal ismini yodlash',{type:'auto',metric:'asmo',target:99}),
+      G('rivoj','IELTS 7.5',{star:true,type:'num',start:6.5,target:7.5,unit:'band',log:[],note:'Imtihon: 10-yanvar.'}),
+      G('rivoj','10+ kitob o\'qish',{star:true,type:'auto',metric:'books',target:10}),
+      G('rivoj','HSK 3 sertifikati',{star:true,type:'steps',steps:S(['HSK 1 so\'zlari (150)','HSK 2 so\'zlari (300)','HSK 3 so\'zlari (600)','Mock test 180+','Ro\'yxatdan o\'tish','Imtihon topshirildi','Sertifikat olindi'])}),
+      G('rivoj','Targeting mentorlik kursi',{type:'bin',note:'Qaysi kurs — aniqlashtir.'}),
+      G('rivoj','Biznes kouching kursi',{type:'bin',note:'Qaysi kurs — aniqlashtir.'}),
+      G('sog','Shifokor ko\'rigi (nafas tizimi)',{star:true,type:'bin',note:'Zalni boshlashdan oldin.'}),
+      G('sog','Vazn: 68 → 78 kg',{star:true,type:'num',start:68,target:78,unit:'kg',weight:true,log:[]}),
+      G('sog','Zal: haftasiga 3–4 marta',{star:true,type:'auto',metric:'gym',target:150}),
+      G('sog','Teri parvarishi tartibi (dermatolog bilan)',{type:'bin'}),
+      G('mukofot','iPhone',{type:'bin',note:'Shart: Grit 100 o\'quvchiga yetganda.'}),
+      G('mukofot','MacBook Air',{type:'bin',note:'Shartini o\'zing yoz.'}),
+      G('mukofot','Whoop braslet',{type:'bin',note:'Shart: 3 oy uzluksiz zal.'}),
+      G('mukofot','Xitoyga sayohat',{type:'bin',note:'Shartini o\'zing yoz.'}),
+      G('mukofot','Dubayga sayohat',{type:'bin',note:'Shart: Grit $3000 ga chiqqanda.'})
+    ],
+    books:[],
+    memo:{yasin:0,mulk:0,asmo:0},
+    cps:[
+      {id:uid(),d:'2027-01-10',t:'IELTS imtihoni',n:'Maqsad 7.0+ (Ko\'mak uchun), ideal 7.5',done:false},
+      {id:uid(),d:'2027-01-31',t:'Ko\'mak: garov, skoring, YaTT/MCHJ savollari aniqlandi',n:'Payariq Yoshlar ishlari agentligi',done:false},
+      {id:uid(),d:'2027-02-28',t:'Bank qarzi yopildi, Ko\'mak arizasi topshirildi',n:'',done:false},
+      {id:uid(),d:'2027-03-31',t:'1-chorak: vazn ~70.5 kg',n:'',done:false},
+      {id:uid(),d:'2027-05-31',t:'Grit ochildi',n:'',done:false},
+      {id:uid(),d:'2027-06-30',t:'2-chorak: vazn ~73 kg, bitiruv',n:'',done:false},
+      {id:uid(),d:'2027-09-30',t:'3-chorak: vazn ~75.5 kg · Moliyaviy tekshiruv: Grit ≥ $2000/oy',n:'Kam bo\'lsa — oktyabrdan oyiga $300–500 jamg\'arish',done:false},
+      {id:uid(),d:'2027-12-31',t:'4-chorak: 78 kg · Grit $3000 · yil yakuni',n:'',done:false}
+    ],
+    settings:{}
+  };
+}
+const core = () => Store.get('core', defaultCore);
+const monthKey = s => 'm'+s.slice(0,4)+'_'+s.slice(5,7);
+const emptyDay = () => ({p:[0,0,0,0,0],j:0,g:0,pg:0,q:0,h:0,e:0});
+function dayGet(s){ const m=Store.docs[monthKey(s)]; return (m&&m.days&&m.days[s])||null; }
+function daySet(s, fn){
+  const k=monthKey(s); const m=Store.get(k,()=>({days:{}})); if(!m.days) m.days={};
+  const d=m.days[s]||emptyDay(); fn(d); m.days[s]=d; Store.save(k);
+}
+function eachDay(year, fn){
+  Object.keys(Store.docs).forEach(k=>{ if(!k.startsWith('m'+year+'_')) return; const days=Store.docs[k].days||{}; Object.entries(days).forEach(([s,d])=>fn(s,d)); });
+}
+
+/* ---------- metrics ---------- */
+function yearStats(year=YEAR){
+  const st={namoz5:0,juma:0,gym:0,pg:0,q:0,h:0,e:0,prayers:0};
+  eachDay(year,(s,d)=>{
+    const sum=(d.p||[]).reduce((a,b)=>a+(b?1:0),0); st.prayers+=sum;
+    if(sum===5) st.namoz5++; if(d.j) st.juma++; if(d.g) st.gym++;
+    st.pg+=+d.pg||0; st.q+=+d.q||0; st.h+=+d.h||0; st.e+=+d.e||0;
+  });
+  const c=core();
+  st.books=c.books.filter(b=>b.done&&b.done.startsWith(String(year))).length;
+  st.yasin=c.memo.yasin||0; st.mulk=c.memo.mulk||0; st.asmo=c.memo.asmo||0;
+  return st;
+}
+function goalVal(g, st){
+  if(g.type==='auto') return st[g.metric]||0;
+  if(g.type==='num'){ const l=(g.log||[]); return l.length?+l[l.length-1].v:+g.start||0; }
+  if(g.type==='steps') return g.steps.filter(x=>x.d).length;
+  return g.done?1:0;
+}
+function goalPct(g, st){
+  const v=goalVal(g,st);
+  if(g.type==='bin') return g.done?100:0;
+  if(g.type==='steps') return g.steps.length?Math.round(v/g.steps.length*100):0;
+  const s=g.type==='num'?(+g.start||0):0, t=+g.target||0;
+  if(t===s) return v>=t?100:0;
+  return clamp(Math.round((v-s)/(t-s)*100),0,100);
+}
+function goalText(g, st){
+  const v=goalVal(g,st);
+  if(g.type==='bin') return g.done?'Bajarildi ✓':'Hali bajarilmagan';
+  if(g.type==='steps') return v+' / '+g.steps.length+' qadam';
+  if(g.type==='auto') return fmt(v)+' / '+fmt(g.target)+' '+AUTO[g.metric].unit;
+  const u=g.unit||''; const pre=u==='$'?'$':''; const post=u&&u!=='$'?' '+u:'';
+  let s=pre+fmt(v)+post+' → '+pre+fmt(g.target)+post;
+  if(g.monthly){ const l=g.log||[]; if(l.length) s+=' · '+monthLabel(l[l.length-1].d); }
+  return s;
+}
+const monthLabel = s => { const d=parse(s.length===7?s+'-01':s); return OYLAR[d.getMonth()]+' '+d.getFullYear(); };
+function overall(st){ const gs=core().goals.filter(g=>g.star&&g.sec!=='mukofot'); if(!gs.length) return 0; return Math.round(gs.reduce((a,g)=>a+goalPct(g,st),0)/gs.length); }
+
+/* ---------- UI state ---------- */
+const UI = { tab:'bugun', date:today(), filter:'star', layers:[] };
+const ICONS = {
+  bugun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18M8 15l2.5 2.5L16 13"/></svg>',
+  maqsad:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+  raqam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  reja:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="19" cy="17" r="3"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
+};
+const TABS=[['bugun','Bugun'],['maqsad','Maqsadlar'],['raqam','Raqamlar'],['reja','Reja']];
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(([id,n])=>`<button data-tab="${id}" class="${UI.tab===id?'on':''}">${ICONS[id]}<span>${n}</span></button>`).join('');
+}
+function render(){
+  renderTabs();
+  const st=yearStats();
+  const v={bugun:vBugun,maqsad:vMaqsad,raqam:vRaqam,reja:vReja}[UI.tab](st);
+  const gear = inTG && can('7.0') ? '' : `<button class="icon-btn" data-act="settings" aria-label="Sozlamalar">${ICONS.gear}</button>`;
+  const titles={bugun:'Bugun',maqsad:'Maqsadlar',raqam:'Raqamlar',reja:'Yil rejasi'};
+  $('#app').innerHTML=`<div class="top"><div><h1>${titles[UI.tab]}</h1><div class="sub">2027 · maqsadlar yili</div></div>${gear}</div>`+v;
+  syncBack();
+}
+
+/* ---------- views ---------- */
+function ringSVG(p){
+  const r=34, c=2*Math.PI*r;
+  return `<svg class="ring" viewBox="0 0 84 84"><circle cx="42" cy="42" r="${r}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle cx="42" cy="42" r="${r}" fill="none" stroke="#7aa5ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p/100)}" transform="rotate(-90 42 42)"/><text x="42" y="47" text-anchor="middle" style="fill:#fff;font-size:17px;font-weight:700">${p}%</text></svg>`;
+}
+function yearHero(st){
+  const t=today(); const start=YEAR+'-01-01', end=YEAR+'-12-31';
+  let line, sub, yp;
+  if(t<start){ const n=daysBetween(t,start); line=n+' kun'; sub='2027-yilgacha qoldi · tayyorgarlik davri'; yp=0; }
+  else if(t>end){ line='Yil yakunlandi'; sub='Natijalaringni ko\'rib chiq'; yp=100; }
+  else { const n=daysBetween(start,t)+1; const left=daysBetween(t,end); line=n+'-kun'; sub=left+' kun qoldi'; yp=Math.round(n/365*100); }
+  return `<div class="card hero"><div class="row"><div class="grow"><div class="mut sm">2027-yil</div><div class="big">${line}</div><div class="sm" style="color:#c9d8ff">${sub}</div><div class="bar" style="margin-top:10px"><i style="width:${yp}%"></i></div><div class="xs mut" style="margin-top:4px">Yil o'tdi: ${yp}%</div></div><div style="text-align:center">${ringSVG(overall(st))}<div class="xs mut">asosiy maqsadlar</div></div></div></div>`;
+}
+const PRAY=['Bomdod','Peshin','Asr','Shom','Xufton'];
+function vBugun(st){
+  const s=UI.date, d=dayGet(s)||emptyDay(), t=today();
+  const dt=parse(s), isFri=dt.getDay()===5;
+  const label = s===t?'Bugun':(s===addDays(t,-1)?'Kecha':HAFTA_FULL[dt.getDay()]);
+  let h=yearHero(st);
+  h+=`<div class="datenav"><button data-act="dprev" aria-label="Oldingi kun">‹</button><div style="text-align:center"><b>${label}</b><div class="xs mut">${prettyDate(s)}</div></div><button data-act="dnext" ${s>=t?'disabled':''} aria-label="Keyingi kun">›</button></div>`;
+  const cnt=d.p.reduce((a,b)=>a+(b?1:0),0);
+  h+=`<div class="card"><h3>Namoz <small>${cnt}/5</small></h3><div class="pray">${PRAY.map((n,i)=>`<button class="chip ${d.p[i]?'done':''}" data-act="pray" data-i="${i}"><b>${d.p[i]?'✓':'○'}</b>${n}</button>`).join('')}</div>`;
+  if(isFri) h+=`<div style="margin-top:8px"><button class="chip ${d.j?'done':''}" style="width:100%;justify-content:center" data-act="juma">${d.j?'✓ Juma namozi o\'qildi':'🕌 Juma namozi'}</button></div>`;
+  h+=`</div>`;
+  const num=(k,lab,unit,step)=>`<div class="hrow"><div><div>${lab}</div><div class="xs mut">${unit}</div></div><div class="stepper"><button data-act="dec" data-k="${k}" data-s="${step}" aria-label="Kamaytirish">−</button><input inputmode="numeric" data-k="${k}" class="dnum" value="${+d[k]||0}"><button data-act="inc" data-k="${k}" data-s="${step}" aria-label="Oshirish">+</button></div></div>`;
+  h+=`<div class="card"><h3>Odatlar</h3>
+    <div class="hrow"><div><div>Zal mashg'uloti</div><div class="xs mut">Yil davomida: ${st.gym}</div></div><button class="toggle ${d.g?'on':''}" data-act="gym" aria-label="Zal"></button></div>
+    ${num('pg','Kitob','sahifa',10)}${num('q',"Qur'on / yodlash",'daqiqa',5)}${num('h','Xitoy tili (HSK)','daqiqa',10)}${num('e','IELTS','daqiqa',15)}
+  </div>`;
+  // week
+  let w=''; for(let i=6;i>=0;i--){ const ds=addDays(t,-i), dd=dayGet(ds), c=dd?dd.p.reduce((a,b)=>a+(b?1:0),0):0, wd=parse(ds).getDay();
+    const bg=c===5?'var(--ok)':c>0?'rgba(79,134,255,'+(0.2+c*0.12)+')':'var(--bg2)';
+    w+=`<button data-act="goday" data-d="${ds}"><div class="d">${HAFTA[wd]}</div><div class="c" style="background:${bg};${ds===s?'outline:2px solid var(--acc2)':''}">${c}/5${dd&&dd.g?' 💪':''}</div></button>`; }
+  h+=`<div class="card"><h3>So'nggi 7 kun <small>namoz</small></h3><div class="week">${w}</div></div>`;
+  const nx=core().cps.filter(c=>!c.done).sort((a,b)=>a.d<b.d?-1:1)[0];
+  if(nx){ const n=daysBetween(t,nx.d); h+=`<button class="card" style="width:100%;text-align:left" data-act="tab" data-t="reja"><div class="xs mut">Keyingi nazorat nuqtasi</div><div style="font-weight:600;margin-top:2px">${esc(nx.t)}</div><div class="sm" style="color:${n<0?'var(--warn)':'var(--acc2)'}">${prettyDate(nx.d)} · ${n<0?Math.abs(n)+' kun o\'tib ketdi':n===0?'bugun':n+' kun qoldi'}</div></button>`; }
+  return h;
+}
+function goalCard(g, st){
+  const p=goalPct(g,st);
+  return `<button class="goal" data-act="goal" data-id="${g.id}"><div class="row between"><div class="t grow">${g.star?'<span class="star">★</span> ':''}${esc(g.title)}</div><div class="sm ${p>=100?'':'mut'}" style="${p>=100?'color:var(--ok)':''}">${p}%</div></div><div class="v">${esc(goalText(g,st))}</div><div class="bar ${p>=100?'ok':''}"><i style="width:${p}%"></i></div></button>`;
+}
+function vMaqsad(st){
+  const c=core(); const f=UI.filter;
+  const filters=[['star','★ Asosiy'],['all','Hammasi']].concat(SECTIONS.map(s=>[s.id,s.ico+' '+s.name]));
+  let h=`<div class="chips" style="flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 6px;padding:0 14px 6px">${filters.map(([id,n])=>`<button class="chip ${f===id?'on':''}" style="white-space:nowrap" data-act="filter" data-f="${id}">${n}</button>`).join('')}</div>`;
+  const list = f==='star'?c.goals.filter(g=>g.star):f==='all'?c.goals:c.goals.filter(g=>g.sec===f);
+  const secs = (f==='star'||f==='all')?SECTIONS.map(s=>s.id):[f];
+  let any=false;
+  secs.forEach(sid=>{
+    const gs=list.filter(g=>g.sec===sid); if(!gs.length && !(f===sid)) return;
+    const done=gs.filter(g=>goalPct(g,st)>=100).length;
+    h+=`<div class="sec-h"><span>${secIco(sid)} ${secName(sid)}</span><span>${done}/${gs.length}</span></div>`;
+    if(!gs.length){ h+=`<div class="card empty">Bu bo'limda hali maqsad yo'q.<br><button class="btn" data-act="newgoal" data-sec="${sid}">+ Maqsad qo'shish</button></div>`; return; }
+    any=true; h+=gs.map(g=>goalCard(g,st)).join('');
+  });
+  if(!any && f!=='all' && !SECTIONS.find(s=>s.id===f)) h+=`<div class="card empty">Asosiy maqsadlar yo'q. Maqsadni ochib ★ belgisini qo'y.</div>`;
+  h+=`<button class="btn" style="margin-top:6px" data-act="newgoal" data-sec="${SECTIONS.find(s=>s.id===f)?f:'moliya'}">+ Yangi maqsad</button>`;
+  return h;
+}
+function lineChart(points, plan, opts){
+  // points: [{x:0..1,y}], plan: [{x,y}]
+  const W=340,H=170,L=30,R=8,T=10,B=22;
+  const ys=points.map(p=>p.y).concat(plan.map(p=>p.y)); let mn=Math.min(...ys), mx=Math.max(...ys);
+  if(opts.min!=null) mn=Math.min(mn,opts.min); if(opts.max!=null) mx=Math.max(mx,opts.max);
+  if(mx===mn){ mx+=1; mn-=1; }
+  const X=x=>L+x*(W-L-R), Y=y=>T+(1-(y-mn)/(mx-mn))*(H-T-B);
+  let g='';
+  for(let i=0;i<=4;i++){ const v=mn+(mx-mn)*i/4, y=Y(v); g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.07)"/><text x="${L-4}" y="${y+3}" text-anchor="end">${fmt(v)}</text>`; }
+  [0,3,6,9].forEach(m=>{ g+=`<text x="${X(m/12)}" y="${H-6}">${OY3[m]}</text>`; });
+  if(plan.length) g+=`<polyline fill="none" stroke="#93a7cc" stroke-dasharray="4 4" stroke-width="1.5" points="${plan.map(p=>X(p.x)+','+Y(p.y)).join(' ')}"/>`;
+  if(points.length){ g+=`<polyline fill="none" stroke="#7aa5ff" stroke-width="2.5" stroke-linejoin="round" points="${points.map(p=>X(p.x)+','+Y(p.y)).join(' ')}"/>`; points.forEach(p=>{ g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5" fill="#7aa5ff"/>`; }); }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(opts.label||'grafik')}">${g}</svg>`;
+}
+const yearFrac = s => clamp(daysBetween(YEAR+'-01-01',s)/365,0,1);
+function vRaqam(st){
+  const c=core(); let h='';
+  const wg=c.goals.find(g=>g.weight);
+  if(wg){
+    const pts=(wg.log||[]).filter(l=>l.d>=YEAR+'-01-01'&&l.d<=YEAR+'-12-31').map(l=>({x:yearFrac(l.d),y:+l.v}));
+    const pre=(wg.log||[]).filter(l=>l.d<YEAR+'-01-01');
+    const last=(wg.log||[]).slice(-1)[0];
+    const planNow = +wg.start + (wg.target-wg.start)*yearFrac(today());
+    h+=`<div class="card"><h3>Vazn <small>${last?fmt(last.v)+' kg':'—'}</small></h3>${lineChart(pts,[{x:0,y:+wg.start},{x:1,y:+wg.target}],{label:'Vazn grafigi',min:+wg.start-1,max:+wg.target+1})}
+      <div class="legend"><span><i style="background:#7aa5ff"></i>Haqiqiy</span><span><i style="background:#93a7cc"></i>Reja (${fmt(wg.start)}→${fmt(wg.target)})</span></div>
+      ${today()>=YEAR+'-01-01'?`<div class="sm mut" style="margin-top:6px">Bugungi reja: ~${fmt(planNow)} kg${last?` · farq: ${(last.v-planNow>=0?'+':'')}${fmt(last.v-planNow)} kg`:''}</div>`:pre.length?`<div class="sm mut" style="margin-top:6px">2027 gacha yozuvlar: ${pre.length} ta</div>`:''}
+      <button class="btn" style="margin-top:10px" data-act="goal" data-id="${wg.id}">+ Vaznni yozish</button></div>`;
+  }
+  // income
+  const mg=c.goals.filter(g=>g.monthly);
+  if(mg.length){
+    const rows=[]; for(let m=0;m<12;m++){ const key=YEAR+'-'+pad(m+1); const vals=mg.map(g=>{ const e=(g.log||[]).find(l=>l.d.slice(0,7)===key); return e?+e.v:0; }); rows.push({m,vals,tot:vals.reduce((a,b)=>a+b,0)}); }
+    const tgt=mg.reduce((a,g)=>a+(+g.target||0),0); const mx=Math.max(tgt,...rows.map(r=>r.tot),1);
+    const cols=['#4f86ff','#38c793','#f2b34a'];
+    const W=340,H=170,L=34,B=22,T=10; const bw=(W-L-6)/12;
+    let g=''; for(let i=0;i<=4;i++){ const v=mx*i/4, y=T+(1-i/4)*(H-T-B); g+=`<line x1="${L}" x2="${W-4}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.07)"/><text x="${L-4}" y="${y+3}" text-anchor="end">${v>=1000?fmt(v/1000)+'k':fmt(v)}</text>`; }
+    rows.forEach(r=>{ let y0=H-B; r.vals.forEach((v,i)=>{ const hh=v/mx*(H-T-B); if(hh>0){ g+=`<rect x="${L+r.m*bw+3}" y="${y0-hh}" width="${bw-6}" height="${hh}" rx="3" fill="${cols[i%3]}"/>`; y0-=hh; } }); g+=`<text x="${L+r.m*bw+bw/2}" y="${H-6}" text-anchor="middle">${OY3[r.m].slice(0,2)}</text>`; });
+    const ty=T+(1-tgt/mx)*(H-T-B); g+=`<line x1="${L}" x2="${W-4}" y1="${ty}" y2="${ty}" stroke="#93a7cc" stroke-dasharray="4 4"/>`;
+    const lastTot=[...rows].reverse().find(r=>r.tot>0);
+    h+=`<div class="card"><h3>Oylik daromad <small>${lastTot?'$'+fmt(lastTot.tot)+' · '+OYLAR[lastTot.m]:'hali yozilmagan'}</small></h3><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Daromad grafigi">${g}</svg>
+      <div class="legend">${mg.map((x,i)=>`<span><i style="background:${cols[i%3]}"></i>${esc(x.title.replace(/oylik|orqali|daromad/gi,'').trim()||x.title)}</span>`).join('')}<span><i style="background:#93a7cc"></i>Maqsad $${fmt(tgt)}</span></div>
+      <div class="chips" style="margin-top:10px">${mg.map(x=>`<button class="chip" data-act="goal" data-id="${x.id}">+ ${esc(x.title.split(' ')[0])}</button>`).join('')}</div></div>`;
+  }
+  // savings & other numeric
+  const others=c.goals.filter(g=>g.type==='num'&&!g.weight&&!g.monthly);
+  if(others.length) h+=`<div class="card"><h3>Boshqa raqamlar</h3>${others.map(g=>{const p=goalPct(g,st);return `<button class="hrow" style="width:100%;text-align:left" data-act="goal" data-id="${g.id}"><div class="grow"><div>${esc(g.title)}</div><div class="xs mut">${esc(goalText(g,st))}</div><div class="bar" style="margin-top:6px"><i style="width:${p}%"></i></div></div><div class="sm" style="margin-left:10px">${p}%</div></button>`;}).join('')}</div>`;
+  // year stats
+  h+=`<div class="card"><h3>2027 statistikasi</h3><div class="stat">
+    <div><b>${st.namoz5}</b><span class="xs mut">5 mahal kunlar</span></div>
+    <div><b>${st.juma}</b><span class="xs mut">juma namozi</span></div>
+    <div><b>${st.gym}</b><span class="xs mut">zal mashg'uloti</span></div>
+    <div><b>${st.books}</b><span class="xs mut">o'qilgan kitob</span></div>
+    <div><b>${fmt(st.pg)}</b><span class="xs mut">kitob sahifasi</span></div>
+    <div><b>${fmt(Math.round(st.q/60*10)/10)}</b><span class="xs mut">soat Qur'on</span></div>
+    <div><b>${fmt(Math.round(st.h/60*10)/10)}</b><span class="xs mut">soat xitoy tili</span></div>
+    <div><b>${fmt(Math.round(st.e/60*10)/10)}</b><span class="xs mut">soat IELTS</span></div>
+  </div></div>`;
+  return h;
+}
+function vReja(st){
+  const c=core(), t=today();
+  const cps=[...c.cps].sort((a,b)=>a.d<b.d?-1:1);
+  let h=`<div class="card"><h3>Nazorat nuqtalari <small>${cps.filter(x=>x.done).length}/${cps.length}</small></h3>`;
+  if(!cps.length) h+=`<div class="empty">Hali nazorat nuqtasi yo'q.</div>`;
+  cps.forEach(x=>{ const n=daysBetween(t,x.d), late=!x.done&&n<0;
+    h+=`<button class="cp ${x.done?'done':''} ${late?'late':''}" data-act="cp" data-id="${x.id}"><div class="dot">${x.done?'✓':''}</div><div class="grow"><div style="font-weight:600">${esc(x.t)}</div>${x.n?`<div class="xs mut">${esc(x.n)}</div>`:''}<div class="xs" style="margin-top:2px;color:${x.done?'var(--ok)':late?'var(--warn)':'var(--acc2)'}">${prettyDate(x.d)} · ${x.done?'bajarildi':late?Math.abs(n)+' kun kechikdi':n===0?'bugun':n+' kun qoldi'}</div></div></button>`; });
+  h+=`</div><button class="btn" data-act="newcp">+ Nazorat nuqtasi qo'shish</button>`;
+  // books
+  h+=`<div class="sec-h"><span>📖 Kitoblar</span><span>${st.books}/10</span></div><div class="card">`;
+  if(!c.books.length) h+=`<div class="empty">Kitob ro'yxati bo'sh.</div>`;
+  c.books.forEach(b=>{ h+=`<button class="hrow" style="width:100%;text-align:left" data-act="book" data-id="${b.id}"><div class="grow"><div>${b.done?'✓ ':''}${esc(b.t)}</div><div class="xs mut">${b.done?'Tugatildi: '+prettyDate(b.done):'O\'qilmoqda'}</div></div></button>`; });
+  h+=`<button class="btn ghost" style="margin-top:8px" data-act="newbook">+ Kitob qo'shish</button></div>`;
+  return h;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html, onClose){
+  UI.layers.push(onClose||null);
+  $('#sheet').innerHTML='<div class="grab"></div>'+html;
+  $('#sheetBg').style.display='block';
+  requestAnimationFrame(()=>$('#sheet').classList.add('open'));
+  syncBack();
+}
+function closeSheet(){
+  const fn=UI.layers.pop(); $('#sheet').classList.remove('open'); $('#sheetBg').style.display='none';
+  if(fn) try{ fn(); }catch(e){}
+  syncBack(); render();
+}
+function syncBack(){
+  if(!inTG||!can('6.1')) return;
+  try{ if(UI.layers.length||UI.date!==today()&&UI.tab==='bugun') tg.BackButton.show(); else tg.BackButton.hide(); }catch(e){}
+}
+function onBack(){
+  if(UI.layers.length){ closeSheet(); return; }
+  if(UI.tab==='bugun'&&UI.date!==today()){ UI.date=today(); render(); }
+}
+
+function goalSheet(id){
+  const c=core(), g=c.goals.find(x=>x.id===id); if(!g) return;
+  const st=yearStats(); const p=goalPct(g,st);
+  let h=`<h2>${g.star?'<span class="star">★</span> ':''}${esc(g.title)}</h2><div class="sm mut">${secIco(g.sec)} ${secName(g.sec)}</div>
+    <div class="card" style="margin-top:10px"><div class="row between"><div>${esc(goalText(g,st))}</div><b>${p}%</b></div><div class="bar ${p>=100?'ok':''}" style="margin-top:8px"><i style="width:${p}%"></i></div>${g.note?`<div class="sm mut" style="margin-top:8px">${esc(g.note)}</div>`:''}</div>`;
+  if(g.type==='bin') h+=`<button class="btn ${g.done?'ghost':''}" data-act="gbin">${g.done?'Bajarilmagan deb belgilash':'✓ Bajarildi deb belgilash'}</button>`;
+  if(g.type==='steps') h+=`<div class="card">${g.steps.map((s,i)=>`<div class="hrow"><div class="grow" style="${s.d?'color:var(--mut);text-decoration:line-through':''}">${esc(s.t)}</div><button class="toggle ${s.d?'on':''}" data-act="gstep" data-i="${i}" aria-label="Qadam"></button></div>`).join('')}</div>
+    <div class="row"><input id="newStep" placeholder="Yangi qadam"><button class="btn" style="width:auto" data-act="gaddstep">+</button></div>`;
+  if(g.type==='num'){
+    const def = g.monthly ? today().slice(0,7) : today();
+    h+=`<div class="card"><div class="field"><label>${g.monthly?'Oy':'Sana'}</label><input id="lgD" type="${g.monthly?'month':'date'}" value="${def}"></div>
+      <div class="field"><label>${g.monthly?'Shu oydagi summa':'Yangi qiymat'} (${esc(g.unit||'')})</label><input id="lgV" inputmode="decimal" placeholder="${fmt(goalVal(g,st))}"></div>
+      <button class="btn" data-act="glog">Saqlash</button></div>`;
+    const l=[...(g.log||[])].reverse();
+    if(l.length) h+=`<div class="card log"><h3>Tarix</h3>${l.slice(0,30).map(e=>`<div class="hrow"><span>${g.monthly?monthLabel(e.d):prettyDate(e.d)}</span><span class="row"><b>${(g.unit==='$'?'$':'')+fmt(e.v)+(g.unit&&g.unit!=='$'?' '+esc(g.unit):'')}</b><button class="x" data-act="gdellog" data-d="${e.d}" aria-label="O'chirish">✕</button></span></div>`).join('')}</div>`;
+  }
+  if(g.type==='auto'){
+    const a=AUTO[g.metric];
+    if(a.memo){ const v=c.memo[g.metric]||0; h+=`<div class="card"><div class="hrow"><div>Yodlangan ${a.unit}lar</div><div class="stepper"><button data-act="memo" data-m="${g.metric}" data-s="-1">−</button><input inputmode="numeric" id="memoV" value="${v}"><button data-act="memo" data-m="${g.metric}" data-s="1">+</button></div></div><button class="btn ghost" style="margin-top:8px" data-act="memoset" data-m="${g.metric}">Saqlash</button></div>`; }
+    else if(g.metric==='books') h+=`<div class="sm mut" style="margin-bottom:10px">Kitoblarni "Reja" bo'limidan qo'shib, tugatilgan deb belgila.</div><button class="btn ghost" data-act="tabclose" data-t="reja">Kitoblar ro'yxatiga o'tish</button>`;
+    else h+=`<div class="sm mut" style="margin-bottom:10px">Bu ko'rsatkich "Bugun" sahifasidagi kundalik belgilashlardan avtomatik hisoblanadi.</div>`;
+  }
+  h+=`<div style="margin-top:14px"><button class="btn ghost" data-act="gedit">Tahrirlash</button></div>`;
+  openSheet(h);
+  UI.cur=id;
+}
+function goalEdit(id, sec){
+  const c=core(); const g=id?c.goals.find(x=>x.id===id):{id:null,sec:sec||'moliya',title:'',star:false,type:'bin',target:'',start:0,unit:'',note:''};
+  const typeOpts=[['bin','Ha/Yo\'q (bajarildi)'],['num','Raqamli (qiymat yoziladi)'],['steps','Qadamlar ro\'yxati']];
+  const isAuto=g.type==='auto';
+  let h=`<h2>${id?'Maqsadni tahrirlash':'Yangi maqsad'}</h2>
+  <div class="field"><label>Nomi</label><input id="eT" value="${esc(g.title)}" placeholder="Masalan: Ota-onamga oylik yordam"></div>
+  <div class="field"><label>Bo'lim</label><select id="eS">${SECTIONS.map(s=>`<option value="${s.id}" ${g.sec===s.id?'selected':''}>${s.ico} ${s.name}</option>`).join('')}</select></div>
+  ${isAuto?'':`<div class="field"><label>Turi</label><select id="eY" ${id?'disabled':''}>${typeOpts.map(([v,n])=>`<option value="${v}" ${g.type===v?'selected':''}>${n}</option>`).join('')}</select></div>`}
+  <div id="numF" style="display:${(g.type==='num'||isAuto)?'block':'none'}">
+    <div class="row">${isAuto?'':`<div class="field grow"><label>Boshlang'ich</label><input id="eA" inputmode="decimal" value="${g.start??0}"></div>`}<div class="field grow"><label>Maqsad</label><input id="eB" inputmode="decimal" value="${g.target??''}"></div>${isAuto?'':`<div class="field" style="width:90px"><label>Birlik</label><input id="eU" value="${esc(g.unit||'')}" placeholder="$, kg"></div>`}</div>
+    ${isAuto?'':`<div class="hrow"><div>Oylik (har oy yoziladi)</div><button class="toggle ${g.monthly?'on':''}" id="eM" data-act="tgl"></button></div>`}
+  </div>
+  <div class="field"><label>Izoh / shart</label><textarea id="eN" rows="2">${esc(g.note||'')}</textarea></div>
+  <div class="hrow" style="margin-bottom:12px"><div>★ Asosiy maqsad</div><button class="toggle ${g.star?'on':''}" id="eStar" data-act="tgl"></button></div>
+  <button class="btn" data-act="gsave" data-id="${id||''}">Saqlash</button>
+  ${id?'<button class="btn danger" data-act="gdel" data-id="'+id+'">Maqsadni o\'chirish</button>':''}`;
+  if(UI.layers.length){ $('#sheet').innerHTML='<div class="grab"></div>'+h; } else openSheet(h);
+  const y=$('#eY'); if(y) y.onchange=()=>{ $('#numF').style.display=y.value==='num'?'block':'none'; };
+}
+function cpSheet(id){
+  const c=core(); const x=id?c.cps.find(a=>a.id===id):{d:today(),t:'',n:'',done:false};
+  openSheet(`<h2>${id?'Nazorat nuqtasi':'Yangi nazorat nuqtasi'}</h2>
+  <div class="field"><label>Sana</label><input id="cD" type="date" value="${x.d}"></div>
+  <div class="field"><label>Nima bo'lishi kerak</label><input id="cT" value="${esc(x.t)}"></div>
+  <div class="field"><label>Izoh</label><textarea id="cN" rows="2">${esc(x.n||'')}</textarea></div>
+  ${id?`<button class="btn ${x.done?'ghost':''}" data-act="cpdone" data-id="${id}">${x.done?'Bajarilmagan deb belgilash':'✓ Bajarildi'}</button>`:''}
+  <button class="btn ${id?'ghost':''}" data-act="cpsave" data-id="${id||''}">Saqlash</button>
+  ${id?`<button class="btn danger" data-act="cpdel" data-id="${id}">O'chirish</button>`:''}`);
+}
+function bookSheet(id){
+  const c=core(); const b=id?c.books.find(a=>a.id===id):{t:'',done:''};
+  openSheet(`<h2>${id?'Kitob':'Yangi kitob'}</h2>
+  <div class="field"><label>Nomi</label><input id="bT" value="${esc(b.t)}" placeholder="Kitob nomi va muallifi"></div>
+  ${id?`<button class="btn ${b.done?'ghost':''}" data-act="bdone" data-id="${id}">${b.done?'O\'qilmoqda deb belgilash':'✓ Tugatdim'}</button>`:''}
+  <button class="btn ${id?'ghost':''}" data-act="bsave" data-id="${id||''}">Saqlash</button>
+  ${id?`<button class="btn danger" data-act="bdel" data-id="${id}">O'chirish</button>`:''}`);
+}
+function settingsSheet(){
+  openSheet(`<h2>Sozlamalar</h2>
+  <div class="card sm"><b>Eslatmalar</b><div class="mut" style="margin-top:4px">Bot har kuni 07:00 da ertalabki va 21:30 da kechki eslatma yuboradi (Toshkent vaqti). Eslatma kelishi uchun botda bir marta <b>Start</b> ni bosgan bo'lishing kerak.</div></div>
+  <div class="card"><b>Maqsadlarni import qilish</b><div class="sm mut" style="margin:4px 0 8px">JSON kodni shu yerga joylashtir: maqsadlar ro'yxatingga qo'shiladi.</div><textarea id="impT" rows="4" placeholder='[{"sec":"oila","title":"...","type":"bin"}]'></textarea><button class="btn" style="margin-top:8px" data-act="import">Import qilish</button></div>
+  <div class="card"><b>Zaxira nusxa</b><div class="sm mut" style="margin:4px 0 8px">Barcha ma'lumotlaringni JSON ko'rinishida nusxalab ol.</div><button class="btn ghost" data-act="export">Nusxalash</button></div>
+  <button class="btn danger" data-act="reset">Hamma ma'lumotni o'chirish</button>
+  <div class="xs mut" style="text-align:center;margin-top:12px">Versiya ${BUILD}${inTG?'':' · brauzer rejimi'}</div>`);
+}
+
+/* ---------- actions ---------- */
+function setStepper(k, v){ daySet(UI.date,d=>{ d[k]=Math.max(0,Math.round(v)||0); }); }
+document.addEventListener('input', e=>{
+  const el=e.target;
+  if(el.classList.contains('dnum')){ setStepper(el.dataset.k, +el.value); }
+});
+document.addEventListener('click', async e=>{
+  const b=e.target.closest('[data-act],[data-tab]'); if(!b) return;
+  if(b.dataset.tab){ UI.tab=b.dataset.tab; haptic('sel'); render(); window.scrollTo(0,0); return; }
+  const a=b.dataset.act, c=core();
+  const g = UI.cur && c.goals.find(x=>x.id===UI.cur);
+  switch(a){
+    case 'settings': settingsSheet(); break;
+    case 'dprev': UI.date=addDays(UI.date,-1); haptic('sel'); render(); break;
+    case 'dnext': if(UI.date<today()){ UI.date=addDays(UI.date,1); haptic('sel'); render(); } break;
+    case 'goday': UI.date=b.dataset.d; haptic('sel'); render(); break;
+    case 'pray': daySet(UI.date,d=>{ const i=+b.dataset.i; d.p[i]=d.p[i]?0:1; if(d.p.every(Boolean)) setTimeout(()=>{haptic('ok');toast('5 mahal namoz ✓ Barakalla!');},50); }); haptic(); render(); break;
+    case 'juma': daySet(UI.date,d=>{ d.j=d.j?0:1; }); haptic('ok'); render(); break;
+    case 'gym': daySet(UI.date,d=>{ d.g=d.g?0:1; }); haptic(); render(); break;
+    case 'inc': case 'dec': { const k=b.dataset.k, s=+b.dataset.s*(a==='inc'?1:-1); const d=dayGet(UI.date)||emptyDay(); setStepper(k,(+d[k]||0)+s); haptic(); render(); break; }
+    case 'tab': UI.tab=b.dataset.t; render(); window.scrollTo(0,0); break;
+    case 'tabclose': UI.tab=b.dataset.t; closeSheet(); break;
+    case 'filter': UI.filter=b.dataset.f; haptic('sel'); render(); break;
+    case 'goal': goalSheet(b.dataset.id); break;
+    case 'newgoal': UI.cur=null; goalEdit(null,b.dataset.sec); break;
+    case 'gedit': goalEdit(UI.cur); break;
+    case 'tgl': b.classList.toggle('on'); haptic(); break;
+    case 'gbin': if(g){ g.done=!g.done; Store.save('core'); haptic(g.done?'ok':'light'); if(g.done) toast('Barakalla! ✓'); goalSheetRefresh(); } break;
+    case 'gstep': if(g){ const s=g.steps[+b.dataset.i]; s.d=!s.d; Store.save('core'); haptic(s.d?'ok':'light'); goalSheetRefresh(); } break;
+    case 'gaddstep': if(g){ const v=$('#newStep').value.trim(); if(v){ g.steps.push({t:v,d:false}); Store.save('core'); goalSheetRefresh(); } } break;
+    case 'glog': if(g){ let d=$('#lgD').value, v=parseFloat(String($('#lgV').value).replace(',','.')); if(!d||isNaN(v)){ haptic('err'); toast('Qiymatni kiriting'); break; }
+      if(g.monthly) d=d.slice(0,7)+'-01';
+      g.log=(g.log||[]).filter(l=>l.d!==d); g.log.push({d,v}); g.log.sort((x,y)=>x.d<y.d?-1:1); Store.save('core'); haptic('ok'); toast('Saqlandi'); goalSheetRefresh(); } break;
+    case 'gdellog': if(g){ if(!await confirmBox('Bu yozuvni o\'chirasizmi?')) break; g.log=g.log.filter(l=>l.d!==b.dataset.d); Store.save('core'); goalSheetRefresh(); } break;
+    case 'memo': { const inp=$('#memoV'); inp.value=Math.max(0,(+inp.value||0)+(+b.dataset.s)); haptic(); break; }
+    case 'memoset': { const m=b.dataset.m; const gg=c.goals.find(x=>x.metric===m); let v=Math.max(0,Math.round(+$('#memoV').value||0)); if(gg) v=Math.min(v,+gg.target||v); c.memo[m]=v; Store.save('core'); haptic('ok'); toast('Saqlandi'); goalSheetRefresh(); break; }
+    case 'gsave': {
+      const id=b.dataset.id; const title=$('#eT').value.trim(); if(!title){ haptic('err'); toast('Nomini yozing'); break; }
+      let x=id?c.goals.find(q=>q.id===id):null;
+      if(!x){ const type=$('#eY')?$('#eY').value:'bin'; x={id:uid(),type,done:false,log:[],steps:[]}; c.goals.push(x); }
+      x.title=title; x.sec=$('#eS').value; x.note=$('#eN').value.trim(); x.star=$('#eStar').classList.contains('on');
+      if(x.type==='num'||x.type==='auto'){ const tv=parseFloat(String($('#eB').value).replace(',','.')); x.target=isNaN(tv)?0:tv; }
+      if(x.type==='num'){ const sv=parseFloat(String($('#eA').value).replace(',','.')); x.start=isNaN(sv)?0:sv; x.unit=$('#eU').value.trim(); x.monthly=$('#eM').classList.contains('on'); if(!x.log) x.log=[]; }
+      if(x.type==='steps'&&!x.steps) x.steps=[];
+      Store.save('core'); haptic('ok'); UI.cur=x.id;
+      while(UI.layers.length) { UI.layers.pop(); } $('#sheet').classList.remove('open'); $('#sheetBg').style.display='none'; render(); goalSheet(x.id); break; }
+    case 'gdel': { if(!await confirmBox('Bu maqsadni butunlay o\'chirasizmi?')) break; c.goals=c.goals.filter(q=>q.id!==b.dataset.id); Store.save('core'); UI.cur=null; closeSheet(); toast('O\'chirildi'); break; }
+    case 'cp': cpSheet(b.dataset.id); break;
+    case 'newcp': cpSheet(null); break;
+    case 'cpdone': { const x=c.cps.find(q=>q.id===b.dataset.id); x.done=!x.done; Store.save('core'); haptic(x.done?'ok':'light'); closeSheet(); if(x.done) toast('Barakalla! ✓'); break; }
+    case 'cpsave': { const t=$('#cT').value.trim(), d=$('#cD').value; if(!t||!d){ haptic('err'); toast('Sana va nomini yozing'); break; } let x=b.dataset.id?c.cps.find(q=>q.id===b.dataset.id):null; if(!x){ x={id:uid(),done:false}; c.cps.push(x); } x.t=t; x.d=d; x.n=$('#cN').value.trim(); Store.save('core'); haptic('ok'); closeSheet(); break; }
+    case 'cpdel': { if(!await confirmBox('O\'chirasizmi?')) break; c.cps=c.cps.filter(q=>q.id!==b.dataset.id); Store.save('core'); closeSheet(); break; }
+    case 'book': bookSheet(b.dataset.id); break;
+    case 'newbook': bookSheet(null); break;
+    case 'bsave': { const t=$('#bT').value.trim(); if(!t){ haptic('err'); break; } let x=b.dataset.id?c.books.find(q=>q.id===b.dataset.id):null; if(!x){ x={id:uid(),done:''}; c.books.push(x); } x.t=t; Store.save('core'); haptic('ok'); closeSheet(); break; }
+    case 'bdone': { const x=c.books.find(q=>q.id===b.dataset.id); x.done=x.done?'':today(); Store.save('core'); haptic(x.done?'ok':'light'); closeSheet(); if(x.done) toast('Yana bitta kitob ✓'); break; }
+    case 'bdel': { if(!await confirmBox('O\'chirasizmi?')) break; c.books=c.books.filter(q=>q.id!==b.dataset.id); Store.save('core'); closeSheet(); break; }
+    case 'import': {
+      let arr; try{ arr=JSON.parse($('#impT').value); }catch(err){ haptic('err'); toast('JSON xato'); break; }
+      if(!Array.isArray(arr)) arr=arr&&arr.goals?arr.goals:[arr];
+      let n=0; arr.forEach(o=>{ if(!o||!o.title) return; const type=['bin','num','steps'].includes(o.type)?o.type:'bin';
+        const x={id:uid(),sec:SECTIONS.find(s=>s.id===o.sec)?o.sec:'oila',title:String(o.title).slice(0,120),star:!!o.star,type,done:false,note:String(o.note||'').slice(0,300)};
+        if(type==='num'){ x.start=+o.start||0; x.target=+o.target||0; x.unit=String(o.unit||'').slice(0,8); x.monthly=!!o.monthly; x.log=[]; }
+        if(type==='steps'){ x.steps=(o.steps||[]).map(t=>({t:String(t).slice(0,120),d:false})); }
+        c.goals.push(x); n++; });
+      Store.save('core'); haptic('ok'); toast(n+' ta maqsad qo\'shildi'); closeSheet(); break; }
+    case 'export': { const all={}; Object.entries(Store.docs).forEach(([k,v])=>all[k]=v); const s=JSON.stringify(all); try{ await navigator.clipboard.writeText(s); toast('Nusxalandi'); }catch(err){ $('#impT').value=s; toast('Matnni qo\'lda nusxalang'); } break; }
+    case 'reset': { if(!await confirmBox('Barcha ma\'lumotlar (maqsadlar, kundalik belgilar) butunlay o\'chadi. Davom etasizmi?')) break; await Store.resetAll(); UI.layers=[]; $('#sheet').classList.remove('open'); $('#sheetBg').style.display='none'; core(); Store.save('core'); render(); toast('Tozalandi'); break; }
+  }
+});
+function goalSheetRefresh(){ const id=UI.cur; UI.layers.pop(); goalSheet(id); }
+$('#sheetBg').addEventListener('click', ()=>closeSheet());
+
+/* ---------- boot ---------- */
+async function boot(){
+  if(inTG){
+    try{ tg.expand(); }catch(e){}
+    try{ if(can('6.1')){ tg.setHeaderColor('#071426'); tg.setBackgroundColor('#071426'); } if(can('7.10')) tg.setBottomBarColor('#071426'); }catch(e){}
+    try{ if(can('6.1')) tg.BackButton.onClick(onBack); }catch(e){}
+    try{ if(can('7.0')){ tg.SettingsButton.show(); tg.SettingsButton.onClick(()=>{ if(!UI.layers.length) settingsSheet(); }); } }catch(e){}
+  }
+  $('#app').innerHTML='<div class="empty" style="padding-top:40vh">Yuklanmoqda…</div>';
+  await Store.loadAll();
+  if(!Store.docs.core){ core(); Store.save('core'); }
+  // migrate: ensure fields
+  const c=core(); c.books=c.books||[]; c.memo=c.memo||{yasin:0,mulk:0,asmo:0}; c.cps=c.cps||[];
+  render();
+  try{ if(inTG) tg.ready(); }catch(e){}
+  // refresh "today" when app resumes on a new day
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&UI.tab==='bugun'&&!UI.layers.length){ render(); } });
+}
+boot();
+</script>
+</body>
+</html>

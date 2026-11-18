@@ -1,0 +1,31 @@
+name: Daily reminders
+
+on:
+  schedule:
+    - cron: "0 2 * * *"    # 07:00 Tashkent
+    - cron: "30 16 * * *"  # 21:30 Tashkent
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "morning yoki evening"
+        default: "morning"
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Send reminder
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          INPUT_KIND: ${{ github.event.inputs.kind }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "$INPUT_KIND" = "evening" ]; then KIND=evening;
+          elif [ -n "$INPUT_KIND" ]; then KIND=morning;
+          elif [ "$SCHEDULE" = "0 2 * * *" ]; then KIND=morning; else KIND=evening; fi
+          python scripts/remind.py "$KIND"
