@@ -114,7 +114,8 @@ svg text{fill:var(--mut);font-size:10px}
 
 <script>
 'use strict';
-const BUILD = '1.1.0';
+const BUILD = '1.2.0';
+const OWNER_ID = 5020539876; // faqat shu Telegram foydalanuvchisi kira oladi
 const YEAR = 2027;
 const tg = window.Telegram && window.Telegram.WebApp;
 const inTG = !!(tg && tg.initData);
@@ -679,6 +680,14 @@ async function boot(){
     try{ if(can('6.1')){ tg.setHeaderColor('#0a0605'); tg.setBackgroundColor('#0a0605'); } if(can('7.10')) tg.setBottomBarColor('#0a0605'); }catch(e){}
     try{ if(can('6.1')) tg.BackButton.onClick(onBack); }catch(e){}
     try{ if(can('7.0')){ tg.SettingsButton.show(); tg.SettingsButton.onClick(()=>{ if(!UI.layers.length) settingsSheet(); }); } }catch(e){}
+  }
+  const me = inTG && tg.initDataUnsafe && tg.initDataUnsafe.user ? Number(tg.initDataUnsafe.user.id) : 0;
+  if(me !== OWNER_ID){
+    $('#tabs').style.display='none';
+    document.body.style.paddingBottom='0';
+    $('#app').innerHTML=`<div class="card hero" style="margin-top:22vh;text-align:center;padding:28px 20px 70px"><div style="font-size:40px">🔒</div><div class="big" style="font-size:26px;margin-top:8px">Shaxsiy ilova</div><div class="sm" style="color:#ffd9c2;margin-top:8px">Bu ilova faqat egasi uchun.</div></div>`;
+    try{ if(inTG){ tg.BackButton.hide(); tg.SettingsButton.hide(); tg.ready(); } }catch(e){}
+    return;
   }
   $('#app').innerHTML='<div class="empty" style="padding-top:40vh">Yuklanmoqda…</div>';
   await Store.loadAll();
