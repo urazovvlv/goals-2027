@@ -115,6 +115,18 @@ nav.tabs button.on svg{color:var(--acc2);filter:drop-shadow(0 0 6px rgba(150,196
 svg text{fill:var(--mut);font-size:10px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:6px}
 .legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.intro{min-height:calc(100vh - 40px - var(--sat));display:flex;flex-direction:column;justify-content:center;padding:20px 6px 30px;animation:fadeUp .5s ease both}
+.intro .q{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif;font-size:31px;line-height:1.18;font-weight:600;letter-spacing:-.9px;margin:14px 0 28px}
+.intro .pct{display:flex;align-items:center;justify-content:center;gap:4px;border-radius:32px;padding:18px 20px;margin-bottom:14px}
+.intro .pct input{background:transparent;border:0;box-shadow:none;width:150px;text-align:right;font-size:64px;font-weight:600;letter-spacing:-2px;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif}
+.intro .pct input:focus{box-shadow:none}
+.intro .pct span{font-size:44px;font-weight:500;color:var(--mut)}
+.intro .quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:22px}
+.intro .quick .chip{justify-content:center;padding:0;font-size:14px}
+.intro .err{color:#ffb3b3;font-size:13px;min-height:18px;text-align:center;margin-bottom:8px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeUp .45s ease both}
+
 </style>
 </head>
 <body>
@@ -126,7 +138,7 @@ svg text{fill:var(--mut);font-size:10px}
 
 <script>
 'use strict';
-const BUILD = '1.4.0';
+const BUILD = '1.5.0';
 const OWNER_ID = 5020539876; // faqat shu Telegram foydalanuvchisi kira oladi
 const YEAR = 2027;
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -606,6 +618,8 @@ function bookSheet(id){
 function settingsSheet(){
   openSheet(`<h2>Sozlamalar</h2>
   <div class="card sm"><b>Eslatmalar</b><div class="mut" style="margin-top:4px">Bot har kuni 07:00 da ertalabki va 21:30 da kechki eslatma yuboradi (Toshkent vaqti). Eslatma kelishi uchun botda bir marta <b>Start</b> ni bosgan bo'lishing kerak.</div></div>
+  ${(()=>{ const a=(core().answers||[]); if(!a.length) return ''; const last=a.slice(-7).reverse(); const avg=Math.round(a.reduce((x,y)=>x+y.v,0)/a.length);
+    return `<div class="card"><b>Kirish savoli javoblari</b><div class="sm mut" style="margin:4px 0 8px">Jami ${a.length} ta · o'rtacha ${avg}%</div>${last.map(x=>`<div class="hrow" style="min-height:38px"><span class="sm">${prettyDate(x.d)}</span><b>${x.v}%</b></div>`).join('')}</div>`; })()}
   <div class="card"><b>Maqsadlarni import qilish</b><div class="sm mut" style="margin:4px 0 8px">JSON kodni shu yerga joylashtir: maqsadlar ro'yxatingga qo'shiladi.</div><textarea id="impT" rows="4" placeholder='[{"sec":"oila","title":"...","type":"bin"}]'></textarea><button class="btn" style="margin-top:8px" data-act="import">Import qilish</button></div>
   <div class="card"><b>Zaxira nusxa</b><div class="sm mut" style="margin:4px 0 8px">Barcha ma'lumotlaringni JSON ko'rinishida nusxalab ol.</div><button class="btn ghost" data-act="export">Nusxalash</button></div>
   <button class="btn danger" data-act="reset">Hamma ma'lumotni o'chirish</button>
@@ -625,6 +639,8 @@ document.addEventListener('click', async e=>{
   const g = UI.cur && c.goals.find(x=>x.id===UI.cur);
   switch(a){
     case 'settings': settingsSheet(); break;
+    case 'introq': { const inp=$('#inPct'); inp.value=b.dataset.v; $('#inErr').textContent=''; haptic('sel'); break; }
+    case 'introgo': introSubmit(); break;
     case 'dprev': UI.date=addDays(UI.date,-1); haptic('sel'); render(); break;
     case 'dnext': if(UI.date<today()){ UI.date=addDays(UI.date,1); haptic('sel'); render(); } break;
     case 'goday': UI.date=b.dataset.d; haptic('sel'); render(); break;
@@ -685,13 +701,46 @@ document.addEventListener('click', async e=>{
 function goalSheetRefresh(){ const id=UI.cur; UI.layers.pop(); goalSheet(id); }
 $('#sheetBg').addEventListener('click', ()=>closeSheet());
 
+
+/* ---------- intro question on every open ---------- */
+const INTRO_Q = "Agar o'tgan yili bor potensialingni ishlatganingda yillik maqsadlaringning qanchasiga erishgan bo'lar eding?";
+function showIntro(){
+  UI.intro=true;
+  $('#tabs').style.display='none';
+  const c=core(); const last=(c.answers||[]).slice(-1)[0];
+  $('#app').innerHTML=`<div class="intro">
+    <div><span class="pill">Kirishdan oldin</span></div>
+    <div class="q">${esc(INTRO_Q)}</div>
+    <div class="pct glass"><input id="inPct" inputmode="numeric" maxlength="3" placeholder="0" aria-label="Foiz" autocomplete="off"><span>%</span></div>
+    <div class="quick">${[50,70,80,90,100].map(v=>`<button class="chip" data-act="introq" data-v="${v}">${v}%</button>`).join('')}</div>
+    <div class="err" id="inErr"></div>
+    <button class="btn" data-act="introgo">Ilovaga kirish</button>
+    ${last?`<div class="xs mut" style="text-align:center;margin-top:14px">Oxirgi javobing: ${last.v}% · ${prettyDate(last.d)}</div>`:''}
+  </div>`;
+  const inp=$('#inPct');
+  inp.addEventListener('input',()=>{ inp.value=inp.value.replace(/\D/g,'').slice(0,3); $('#inErr').textContent=''; });
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); introSubmit(); } });
+}
+function introSubmit(){
+  const raw=$('#inPct').value.trim(); const v=parseInt(raw,10);
+  if(raw===''||isNaN(v)||v<0||v>100){ $('#inErr').textContent='0 dan 100 gacha son yoz'; haptic('err'); return; }
+  const c=core(); c.answers=c.answers||[]; c.answers.push({d:today(),v,t:Date.now()});
+  if(c.answers.length>500) c.answers=c.answers.slice(-500);
+  Store.save('core'); haptic('ok');
+  try{ document.activeElement&&document.activeElement.blur(); }catch(e){}
+  UI.intro=false;
+  $('#tabs').style.display='';
+  render();
+  $('#app').classList.add('fade-in'); setTimeout(()=>$('#app').classList.remove('fade-in'),500);
+}
+
 /* ---------- boot ---------- */
 async function boot(){
   if(inTG){
     try{ tg.expand(); }catch(e){}
     try{ if(can('6.1')){ tg.setHeaderColor('#0c171c'); tg.setBackgroundColor('#0c171c'); } if(can('7.10')) tg.setBottomBarColor('#0c171c'); }catch(e){}
     try{ if(can('6.1')) tg.BackButton.onClick(onBack); }catch(e){}
-    try{ if(can('7.0')){ tg.SettingsButton.show(); tg.SettingsButton.onClick(()=>{ if(!UI.layers.length) settingsSheet(); }); } }catch(e){}
+    try{ if(can('7.0')){ tg.SettingsButton.show(); tg.SettingsButton.onClick(()=>{ if(!UI.layers.length&&!UI.intro) settingsSheet(); }); } }catch(e){}
   }
   const me = inTG && tg.initDataUnsafe && tg.initDataUnsafe.user ? Number(tg.initDataUnsafe.user.id) : 0;
   if(me !== OWNER_ID){
@@ -705,8 +754,8 @@ async function boot(){
   await Store.loadAll();
   if(!Store.docs.core){ core(); Store.save('core'); }
   // migrate: ensure fields
-  const c=core(); c.books=c.books||[]; c.memo=c.memo||{yasin:0,mulk:0,asmo:0}; c.cps=c.cps||[];
-  render();
+  const c=core(); c.books=c.books||[]; c.memo=c.memo||{yasin:0,mulk:0,asmo:0}; c.cps=c.cps||[]; c.answers=c.answers||[];
+  showIntro();
   try{ if(inTG) tg.ready(); }catch(e){}
   // refresh "today" when app resumes on a new day
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&UI.tab==='bugun'&&!UI.layers.length){ render(); } });
