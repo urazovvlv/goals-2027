@@ -114,6 +114,20 @@ nav.tabs button.on svg{color:var(--acc2);filter:drop-shadow(0 0 6px rgba(150,196
 .star{color:var(--acc2);text-shadow:0 0 8px rgba(150,196,208,.8)}
 svg text{fill:var(--mut);font-size:10px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:6px}
+.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.gtile{position:relative;aspect-ratio:1/1;border-radius:22px;overflow:hidden;text-align:left;padding:0;display:block;width:100%;background:var(--glass);border:1px solid var(--glass-b);box-shadow:var(--rim),0 12px 30px -14px rgba(0,0,0,.7)}
+.gtile .img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .4s}
+.gtile:active .img{transform:scale(1.04)}
+.gtile .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(5,12,15,.55) 62%,rgba(5,12,15,.92) 100%)}
+.gtile .noimg{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;opacity:.55;padding-bottom:40px}
+.gtile .noimg small{display:block;font-size:11px;text-align:center;margin-top:4px;opacity:.9}
+.gtile .info{position:absolute;left:0;right:0;bottom:0;padding:10px 11px 11px}
+.gtile .tt{font-size:14px;font-weight:600;line-height:1.2;letter-spacing:-.2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.gtile .pc{position:absolute;top:9px;right:9px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.gtile .st{position:absolute;top:8px;left:10px;font-size:16px}
+.gtile .bar{margin-top:7px;height:4px;background:rgba(255,255,255,.18)}
+.gtile.done{border-color:rgba(200,230,236,.7);box-shadow:var(--rim),0 0 22px rgba(150,196,208,.45)}
+.gimg{width:100%;aspect-ratio:1/1;border-radius:22px;background-size:cover;background-position:center;border:1px solid var(--glass-b);box-shadow:var(--rim);margin:10px 0}
 .legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
 .intro{min-height:calc(100vh - 40px - var(--sat));display:flex;flex-direction:column;justify-content:center;padding:20px 6px 30px;animation:fadeUp .5s ease both}
 .intro .q{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif;font-size:31px;line-height:1.18;font-weight:600;letter-spacing:-.9px;margin:14px 0 28px}
@@ -138,7 +152,7 @@ svg text{fill:var(--mut);font-size:10px}
 
 <script>
 'use strict';
-const BUILD = '1.5.0';
+const BUILD = '1.6.0';
 const OWNER_ID = 5020539876; // faqat shu Telegram foydalanuvchisi kira oladi
 const YEAR = 2027;
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -207,7 +221,7 @@ const Store = {
       if(!keys||!keys.length){ // first run in cloud: push local docs up
         Object.keys(this.docs).forEach(n=>this.push(n)); return;
       }
-      const vals=await Cloud.getMany(keys);
+      const vals={}; for(let i=0;i<keys.length;i+=80) Object.assign(vals, await Cloud.getMany(keys.slice(i,i+80)));
       const grouped={};
       keys.forEach(k=>{ const m=k.match(/^(.+)_(n|\d+)$/); if(!m) return; (grouped[m[1]]=grouped[m[1]]||{})[m[2]]=vals[k]; });
       Object.entries(grouped).forEach(([name,g])=>{
@@ -246,6 +260,12 @@ const Store = {
         }catch(e){ await new Promise(r=>setTimeout(r,800*(attempt+1))); }
       }
     });
+  },
+  remove(name){
+    delete this.docs[name]; try{ localStorage.removeItem(LS+name); }catch(e){}
+    clearTimeout(this.timers[name]);
+    if(!Cloud.ok()) return;
+    this.q=this.q.then(async()=>{ try{ const n=this.parts[name]||0; const rm=[name+'_n']; for(let i=0;i<Math.max(n,40);i++) rm.push(name+'_'+i); await Cloud.removeMany(rm); delete this.parts[name]; }catch(e){} });
   },
   async resetAll(){
     Object.keys(localStorage).filter(k=>k.startsWith(LS)).forEach(k=>localStorage.removeItem(k));
@@ -437,6 +457,14 @@ function goalCard(g, st){
   const p=goalPct(g,st);
   return `<button class="goal" data-act="goal" data-id="${g.id}"><div class="row between"><div class="t grow">${g.star?'<span class="star">★</span> ':''}${esc(g.title)}</div><div class="sm ${p>=100?'':'mut'}" style="${p>=100?'color:var(--ok)':''}">${p}%</div></div><div class="v">${esc(goalText(g,st))}</div><div class="bar ${p>=100?'ok':''}"><i style="width:${p}%"></i></div></button>`;
 }
+function imgOf(id){ const d=Store.docs['img_'+id]; return d&&d.data||''; }
+function goalTile(g, st){
+  const p=goalPct(g,st), im=imgOf(g.id);
+  return `<button class="gtile ${p>=100?'done':''}" data-act="goal" data-id="${g.id}">
+    ${im?`<div class="img" style="background-image:url('${im}')"></div>`:`<div class="noimg"><div>${secIco(g.sec)}<small>+ rasm</small></div></div>`}
+    <div class="shade"></div>${g.star?'<span class="st star">★</span>':''}<span class="pc">${p}%</span>
+    <div class="info"><div class="tt">${esc(g.title)}</div><div class="bar ${p>=100?'ok':''}"><i style="width:${p}%"></i></div></div></button>`;
+}
 function vMaqsad(st){
   const c=core(); const f=UI.filter;
   const filters=[['star','★ Asosiy'],['all','Hammasi']].concat(SECTIONS.map(s=>[s.id,s.ico+' '+s.name]));
@@ -449,7 +477,7 @@ function vMaqsad(st){
     const done=gs.filter(g=>goalPct(g,st)>=100).length;
     h+=`<div class="sec-h"><span>${secIco(sid)} ${secName(sid)}</span><span>${done}/${gs.length}</span></div>`;
     if(!gs.length){ h+=`<div class="card empty">Bu bo'limda hali maqsad yo'q.<br><button class="btn" data-act="newgoal" data-sec="${sid}">+ Maqsad qo'shish</button></div>`; return; }
-    any=true; h+=gs.map(g=>goalCard(g,st)).join('');
+    any=true; h+=`<div class="ggrid">${gs.map(g=>goalTile(g,st)).join('')}</div>`;
   });
   if(!any && f!=='all' && !SECTIONS.find(s=>s.id===f)) h+=`<div class="card empty">Asosiy maqsadlar yo'q. Maqsadni ochib ★ belgisini qo'y.</div>`;
   h+=`<button class="btn" style="margin-top:6px" data-act="newgoal" data-sec="${SECTIONS.find(s=>s.id===f)?f:'moliya'}">+ Yangi maqsad</button>`;
@@ -556,6 +584,7 @@ function goalSheet(id){
   const c=core(), g=c.goals.find(x=>x.id===id); if(!g) return;
   const st=yearStats(); const p=goalPct(g,st);
   let h=`<h2>${g.star?'<span class="star">★</span> ':''}${esc(g.title)}</h2><div class="sm mut">${secIco(g.sec)} ${secName(g.sec)}</div>
+    ${imgOf(g.id)?`<div class="gimg" style="background-image:url('${imgOf(g.id)}')"></div><div class="row" style="margin-bottom:10px"><button class="btn ghost" data-act="gimg">Rasmni almashtirish</button><button class="btn danger" style="margin-top:0;width:auto" data-act="gimgdel">O'chirish</button></div>`:`<button class="btn ghost" style="margin:10px 0" data-act="gimg">🖼 Rasm qo'yish</button>`}
     <div class="card" style="margin-top:10px"><div class="row between"><div>${esc(goalText(g,st))}</div><b>${p}%</b></div><div class="bar ${p>=100?'ok':''}" style="margin-top:8px"><i style="width:${p}%"></i></div>${g.note?`<div class="sm mut" style="margin-top:8px">${esc(g.note)}</div>`:''}</div>`;
   if(g.type==='bin') h+=`<button class="btn ${g.done?'ghost':''}" data-act="gbin">${g.done?'Bajarilmagan deb belgilash':'✓ Bajarildi deb belgilash'}</button>`;
   if(g.type==='steps') h+=`<div class="card">${g.steps.map((s,i)=>`<div class="hrow"><div class="grow" style="${s.d?'color:var(--mut);text-decoration:line-through':''}">${esc(s.t)}</div><button class="toggle ${s.d?'on':''}" data-act="gstep" data-i="${i}" aria-label="Qadam"></button></div>`).join('')}</div>
@@ -641,6 +670,8 @@ document.addEventListener('click', async e=>{
     case 'settings': settingsSheet(); break;
     case 'introq': { const inp=$('#inPct'); inp.value=b.dataset.v; $('#inErr').textContent=''; haptic('sel'); break; }
     case 'introgo': introSubmit(); break;
+    case 'gimg': pickImage(); break;
+    case 'gimgdel': { if(!g) break; if(!await confirmBox('Rasmni o\'chirasizmi?')) break; Store.remove('img_'+g.id); toast('Rasm o\'chirildi'); goalSheetRefresh(); break; }
     case 'dprev': UI.date=addDays(UI.date,-1); haptic('sel'); render(); break;
     case 'dnext': if(UI.date<today()){ UI.date=addDays(UI.date,1); haptic('sel'); render(); } break;
     case 'goday': UI.date=b.dataset.d; haptic('sel'); render(); break;
@@ -674,7 +705,7 @@ document.addEventListener('click', async e=>{
       if(x.type==='steps'&&!x.steps) x.steps=[];
       Store.save('core'); haptic('ok'); UI.cur=x.id;
       while(UI.layers.length) { UI.layers.pop(); } $('#sheet').classList.remove('open'); $('#sheetBg').style.display='none'; render(); goalSheet(x.id); break; }
-    case 'gdel': { if(!await confirmBox('Bu maqsadni butunlay o\'chirasizmi?')) break; c.goals=c.goals.filter(q=>q.id!==b.dataset.id); Store.save('core'); UI.cur=null; closeSheet(); toast('O\'chirildi'); break; }
+    case 'gdel': { if(!await confirmBox('Bu maqsadni butunlay o\'chirasizmi?')) break; Store.remove('img_'+b.dataset.id); c.goals=c.goals.filter(q=>q.id!==b.dataset.id); Store.save('core'); UI.cur=null; closeSheet(); toast('O\'chirildi'); break; }
     case 'cp': cpSheet(b.dataset.id); break;
     case 'newcp': cpSheet(null); break;
     case 'cpdone': { const x=c.cps.find(q=>q.id===b.dataset.id); x.done=!x.done; Store.save('core'); haptic(x.done?'ok':'light'); closeSheet(); if(x.done) toast('Barakalla! ✓'); break; }
@@ -698,6 +729,35 @@ document.addEventListener('click', async e=>{
     case 'reset': { if(!await confirmBox('Barcha ma\'lumotlar (maqsadlar, kundalik belgilar) butunlay o\'chadi. Davom etasizmi?')) break; await Store.resetAll(); UI.layers=[]; $('#sheet').classList.remove('open'); $('#sheetBg').style.display='none'; core(); Store.save('core'); render(); toast('Tozalandi'); break; }
   }
 });
+function pickImage(){
+  const id=UI.cur; if(!id) return;
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.style.display='none';
+  document.body.appendChild(inp);
+  inp.onchange=async()=>{
+    const f=inp.files&&inp.files[0]; inp.remove(); if(!f) return;
+    try{
+      toast('Rasm tayyorlanmoqda…');
+      const data=await squareImage(f, 420, 0.72);
+      Store.docs['img_'+id]={data}; Store.save('img_'+id);
+      haptic('ok'); toast('Rasm qo\'yildi'); if(UI.cur===id&&UI.layers.length) goalSheetRefresh(); else render();
+    }catch(e){ haptic('err'); toast('Rasmni ochib bo\'lmadi'); }
+  };
+  inp.click();
+}
+function squareImage(file, size, q){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file); const im=new Image();
+    im.onload=()=>{ try{
+      const s=Math.min(im.naturalWidth,im.naturalHeight); const sx=(im.naturalWidth-s)/2, sy=(im.naturalHeight-s)/2;
+      const cv=document.createElement('canvas'); cv.width=cv.height=size; const cx=cv.getContext('2d');
+      cx.imageSmoothingQuality='high'; cx.drawImage(im,sx,sy,s,s,0,0,size,size);
+      let d=cv.toDataURL('image/jpeg',q); if(d.length>70000) d=cv.toDataURL('image/jpeg',0.55);
+      URL.revokeObjectURL(url); res(d);
+    }catch(e){ rej(e); } };
+    im.onerror=e=>{ URL.revokeObjectURL(url); rej(e); };
+    im.src=url;
+  });
+}
 function goalSheetRefresh(){ const id=UI.cur; UI.layers.pop(); goalSheet(id); }
 $('#sheetBg').addEventListener('click', ()=>closeSheet());
 
